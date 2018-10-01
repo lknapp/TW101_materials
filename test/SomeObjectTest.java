@@ -4,6 +4,7 @@ import org.mockito.InOrder;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
 
 public class SomeObjectTest {
@@ -38,7 +39,7 @@ public class SomeObjectTest {
         verify(mockedList, atMost(5)).add("three times");
     }
 
-    @Test
+    @Test(expected = RuntimeException.class)
     public void testThrowingExceptions() {
         List mockedList = mock(List.class);
 
@@ -78,11 +79,11 @@ public class SomeObjectTest {
 
         //using mocks
         firstMock.add("was called first");
-        firstMock.add("was called 1.5");
         secondMock.add("was called second");
+        firstMock.add("was called 1.5");
 
         //create inOrder object passing any mocks that need to be verified in order
-        InOrder inOrder = inOrder(firstMock, secondMock);
+        InOrder inOrder = inOrder(secondMock, firstMock);
 
         //following will make sure that firstMock was called before secondMock
         inOrder.verify(firstMock).add("was called first");
@@ -90,16 +91,31 @@ public class SomeObjectTest {
         inOrder.verify(secondMock).add("was called second");
     }
 
-
-
-
     @Test
+    public void testMockReturnsMultipleReturnsInOrder() {
+        SomeObject mock = mock(SomeObject.class);
+
+        when(mock.someMethod("arg"))
+                .thenReturn("foo")
+                .thenReturn("bar");
+
+        assertEquals(mock.someMethod("arg"), "foo");
+        assertEquals(mock.someMethod("arg"), "bar");
+    }
+
+
+
+
+
+
+    @Test(expected = RuntimeException.class)
     public void testExceptionsAndRegularReturns() {
         SomeObject mock = mock(SomeObject.class);
 
         when(mock.someMethod("some arg"))
                 .thenThrow(new RuntimeException())
                 .thenReturn("foo");
+
 
         //First call: throws runtime exception:
         mock.someMethod("some arg");
@@ -110,6 +126,7 @@ public class SomeObjectTest {
         //Any consecutive call: prints "foo" as well (last stubbing wins).
         System.out.println(mock.someMethod("some arg"));
     }
+
 
 
     @Test
